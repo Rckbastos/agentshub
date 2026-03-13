@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  plan            String           @default("starter")
+  messagesUsed    Int              @default(0)
+  messagesLimit   Int              @default(500)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  channels        TenantChannel[]
+  hubConfig       HubConfig?
+  conversations   Conversation[]
+}
+
+model TenantChannel {
+  id           String    @id @default(cuid())
+  tenantId     String
+  instanceName String
+  phone        String?
+  status       String    @default("disconnected")
+  connectedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  tenant       Tenant    @relation(fields: [tenantId], references: [id])
+}
+
+model HubConfig {
+  id                String   @id @default(cuid())
+  tenantId          String   @unique
+  tom               String   @default("profissional")
+  nomeEmpresa       String
+  descricaoProduto  String
+  urlSite           String?
+  conteudoUrl       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  tenant            Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  tenantId  String
+  phone     String
+  agentType String
+  origin    String   @default("whatsapp")
+  history   Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+}
